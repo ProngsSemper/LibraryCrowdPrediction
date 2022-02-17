@@ -25,38 +25,50 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
 from matplotlib.font_manager import FontProperties  # 画图时可以使用中文
 
-f = pd.read_csv('F:\AE86.csv')
+# f = pd.read_csv('F:\AE86.csv')
+f = pd.read_csv('F:\lib.csv')
 
 
 # 从新设置列标
 def set_columns():
     columns = []
-    # loc[2]读取第三行
+
     for i in f.loc[2]:
         # append()接受一个对象参数，把对象添加到列表的尾部 .strip（）用来删除空白符
-        columns.append(i.strip())
+        # columns.append(i.strip())
+        columns.append(i)
     return columns
 
 
-f.columns = set_columns()
+# f.columns = set_columns()
 # drop函数默认删除行，列需要加axis = 1
 # drop方法有一个可选参数inplace，表明可对原数组作出修改并返回一个新数组。不管参数默认为False还是设置为True，原数组的内存值是不会改变的，区别在于原数组的内容是否直接被修改。
 f.drop([0, 1, 2], inplace=True)
 
 # data 包含要操作的列
 data = pd.DataFrame()
-data['datetime'] = f['Local Date'] + ' ' + f['Local Time']
-data['total_flow'] = f['Total Carriageway Flow']
-# data['speed'] = f['Speed Value']
-data['datetime'] = pd.to_datetime(data['datetime'])
+# data['datetime'] = f['Local Date'] + ' ' + f['Local Time']
+# data['total_flow'] = f['Total Carriageway Flow']
+# # data['speed'] = f['Speed Value']
+# data['datetime'] = pd.to_datetime(data['datetime'])
+#
+# data['month'] = data['datetime'].apply(lambda date: date.month)
+# data['day'] = data['datetime'].apply(lambda date: date.day)
+# data['hour'] = data['datetime'].apply(lambda date: date.hour)
+# data['minute'] = data['datetime'].apply(lambda date: date.minute)
 
-data['month'] = data['datetime'].apply(lambda date: date.month)
-data['day'] = data['datetime'].apply(lambda date: date.day)
-data['hour'] = data['datetime'].apply(lambda date: date.hour)
-data['minute'] = data['datetime'].apply(lambda date: date.minute)
+# 代码适应图书馆的数据
+data['datetime'] = f['DATE']
+data['human_traffic'] = f['INCOUNT']
+
+data['year'] = data['datetime'].apply(lambda date: date.split('/')[0]).astype('int')
+data['month'] = data['datetime'].apply(lambda date: date.split('/')[1]).astype('int')
+data['day'] = data['datetime'].apply(lambda date: date.split('/')[2]).astype('int')
+
+data['human_traffic'] = np.array(data['human_traffic']).astype(np.float64)
 
 # 数据转格式
-data['total_flow'] = np.array(data['total_flow']).astype(np.float64)
+# data['total_flow'] = np.array(data['total_flow']).astype(np.float64)
 # 一月第25天第一个时间的索引值
 d25 = data.query('day==25').index[0]
 # 训练集  2211个数据，2018年一月前三周
@@ -130,7 +142,8 @@ plt.figure(figsize=(15, 10))
 plt.plot(real_flow, label='Real_Flow', color='r', )
 plt.plot(pre_flow, label='Pre_Flow')
 plt.xlabel('测试序列', fontproperties=font_set)
-plt.ylabel('交通流量/辆', fontproperties=font_set)
+# plt.ylabel('交通流量/辆', fontproperties=font_set)
+plt.ylabel('人流量/人数', fontproperties=font_set)
 plt.legend()
 # 预测储存图片
-plt.savefig('F:\123.jpg')
+plt.savefig('F:\345.jpg')
