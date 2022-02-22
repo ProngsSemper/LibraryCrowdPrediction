@@ -95,11 +95,11 @@ for i in range(time_step, len(test_set_sc)):
 x_test, y_test = np.array(x_test), np.array(y_test)
 
 # 随机化，这部分可以不要
-np.random.seed(7)
-np.random.shuffle(x_train)
-np.random.seed(7)
-np.random.shuffle(y_train)
-tf.random.set_seed(7)
+# np.random.seed(7)
+# np.random.shuffle(x_train)
+# np.random.seed(7)
+# np.random.shuffle(y_train)
+# tf.random.set_seed(7)
 
 # 转为array格式
 x_train, y_train = np.array(x_train), np.array(y_train)
@@ -120,7 +120,8 @@ model.compile(optimizer='adam',
 
 # 训练模型， 其中epochs，batch_size 可以自己更改
 history = model.fit(x_train, y_train,
-                    epochs=5,
+                    epochs=700,
+                    batch_size=5,
                     validation_data=(x_test, y_test))
 # 模型预测
 pre_flow = model.predict(x_test)
@@ -146,4 +147,4 @@ plt.xlabel('测试序列', fontproperties=font_set)
 plt.ylabel('人流量/人数', fontproperties=font_set)
 plt.legend()
 # 预测储存图片
-plt.savefig('F:\345.jpg')
+plt.savefig('F:\lib2.jpg')
