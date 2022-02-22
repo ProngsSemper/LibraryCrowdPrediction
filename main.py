@@ -120,7 +120,7 @@ model.compile(optimizer='adam',
 
 # 训练模型， 其中epochs，batch_size 可以自己更改
 history = model.fit(x_train, y_train,
-                    epochs=700,
+                    epochs=500,
                     batch_size=5,
                     validation_data=(x_test, y_test))
 # 模型预测
