@@ -69,11 +69,11 @@ data['human_traffic'] = np.array(data['human_traffic']).astype(np.float64)
 
 # 数据转格式
 # data['total_flow'] = np.array(data['total_flow']).astype(np.float64)
-# 一月第25天第一个时间的索引值
+# 第25天第一个时间的索引值
 d25 = data.query('day==25').index[0]
-# 训练集  2211个数据，2018年一月前三周
+# 训练集
 train_set = data.iloc[:d25, 1:2]
-# 检测集  669个数据，2018年最后一周
+# 检测集
 test_set = data.iloc[d25:, 1:2]
 # 归一化 训练神经网络模型归一化，对预测结果进行反归一化便于与原始标签进行比较，衡量模型的性能
 sc = MinMaxScaler(feature_range=(0, 1))
@@ -81,7 +81,7 @@ train_set_sc = sc.fit_transform(train_set)
 test_set_sc = sc.transform(test_set)
 
 # 按照time_step划分时间步长
-time_step = 5
+time_step = 3
 x_train = []
 y_train = []
 x_test = []
@@ -120,7 +120,7 @@ model.compile(optimizer='adam',
 
 # 训练模型， 其中epochs，batch_size 可以自己更改
 history = model.fit(x_train, y_train,
-                    epochs=500,
+                    epochs=700,
                     batch_size=5,
                     validation_data=(x_test, y_test))
 # 模型预测
