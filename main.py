@@ -51,7 +51,7 @@ d25 = data.query('day==25').index[0]
 # 训练集
 # : 表示所有，如果左右有数字则表示左闭右开[ )，这里表示训练集取的数据是从第0行到第53行的human_traffic
 train_set = data.iloc[:d25, 1:2]
-# 检测集 检测集为滴54行开始到400行的数据
+# 检测集 检测集为第54行开始到400行的数据
 test_set = data.iloc[d25:, 1:2]
 # 数据预处理归一化 训练神经网络模型归一化，对预测结果进行反归一化便于与原始标签进行比较，衡量模型的性能 可以加快求解速度
 sc = MinMaxScaler(feature_range=(0, 1))
@@ -63,7 +63,7 @@ train_set_sc = sc.fit_transform(train_set)
 test_set_sc = sc.transform(test_set)
 
 # 按照time_step划分时间步长
-time_step = 3
+time_step = 5
 x_train = []
 y_train = []
 x_test = []
