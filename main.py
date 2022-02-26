@@ -1,20 +1,3 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-# def print_hi(name):
-#     # Use a breakpoint in the code line below to debug your script.
-#     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-# if __name__ == '__main__':
-#     print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
-
 import tensorflow as tf
 import pandas as pd
 import numpy as np
@@ -23,9 +6,8 @@ from tensorflow.keras.layers import Dense, LSTM, Dropout, Flatten
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
-from matplotlib.font_manager import FontProperties  # 画图时可以使用中文
+from matplotlib.font_manager import FontProperties
 
-# f = pd.read_csv('F:\AE86.csv')
 f = pd.read_csv('F:\lib.csv')
 
 # drop函数默认删除行，列需要加axis = 1
@@ -39,6 +21,7 @@ data = pd.DataFrame()
 # 代码适应图书馆的数据
 data['datetime'] = f['DATE']
 data['human_traffic'] = f['INCOUNT']
+data['week'] = f['WEEKDAY']
 
 data['year'] = data['datetime'].apply(lambda date: date.split('/')[0]).astype('int')
 data['month'] = data['datetime'].apply(lambda date: date.split('/')[1]).astype('int')
@@ -46,13 +29,13 @@ data['day'] = data['datetime'].apply(lambda date: date.split('/')[2]).astype('in
 # 将人流量数据转换为float64类型
 data['human_traffic'] = np.array(data['human_traffic']).astype(np.float64)
 
-# data.query('day==25')是查找所有日期为25日的数据，index[0]为第一个日期为25日的数据的行号（本数据集中为54）
-d25 = data.query('day==25').index[0]
+# 用1/6的数据做测试集，本数据集中2021年3月21日开始的数据作为测试集
+d_final = data.query('year==2021').query('month==3').query('day==21').index[0]
 # 训练集
-# : 表示所有，如果左右有数字则表示左闭右开[ )，这里表示训练集取的数据是从第0行到第53行的human_traffic
-train_set = data.iloc[:d25, 1:2]
-# 检测集 检测集为第54行开始到400行的数据
-test_set = data.iloc[d25:, 1:2]
+# : 表示所有，如果左右有数字则表示左闭右开[ )
+train_set = data.iloc[:d_final, 1:2]
+# 检测集
+test_set = data.iloc[d_final:, 1:2]
 # 数据预处理归一化 训练神经网络模型归一化，对预测结果进行反归一化便于与原始标签进行比较，衡量模型的性能 可以加快求解速度
 sc = MinMaxScaler(feature_range=(0, 1))
 # fit(): 求得训练集X的均值，方差，最大值，最小值,这些训练集X固有的属性。
@@ -62,7 +45,7 @@ sc = MinMaxScaler(feature_range=(0, 1))
 train_set_sc = sc.fit_transform(train_set)
 test_set_sc = sc.transform(test_set)
 
-# 按照time_step划分时间步长
+# 按照time_step划分时间步长（使用前time_step个时间段预测下一个）
 time_step = 5
 x_train = []
 y_train = []
@@ -70,9 +53,9 @@ x_test = []
 y_test = []
 # range() 从time_step 到 len - 1，下面则是time_step到53
 for i in range(time_step, len(train_set_sc)):
-    # 第一次循环append 0：3（0、1、2） 第二次append 1：4（1、2、3）
+    # 第一次循环append 0：time_step（0、1、2、...） 第二次append 1：time_step（1、2、3、...）
     x_train.append(train_set_sc[i - time_step:i])
-    # 第一次循环append 3：4 第二次append 4：5 即从第三个数据开始每一轮添加一个
+    # 每次循环从time_step开始每一轮添加一个
     y_train.append(train_set_sc[i:i + 1])
 for i in range(time_step, len(test_set_sc)):
     x_test.append(test_set_sc[i - time_step:i])
@@ -98,7 +81,7 @@ model.compile(optimizer='adam',
 # 训练模型
 history = model.fit(x_train, y_train,
                     epochs=700,
-                    batch_size=5,
+                    batch_size=64,
                     validation_data=(x_test, y_test))
 # 模型预测
 pre_flow = model.predict(x_test)
@@ -120,8 +103,7 @@ plt.figure(figsize=(15, 10))
 plt.plot(real_flow, label='Real_Flow', color='r', )
 plt.plot(pre_flow, label='Pre_Flow')
 plt.xlabel('测试序列', fontproperties=font_set)
-# plt.ylabel('交通流量/辆', fontproperties=font_set)
 plt.ylabel('人流量/人数', fontproperties=font_set)
 plt.legend()
 # 预测储存图片
-plt.savefig('F:\lib2.jpg')
+plt.savefig('F:\libCorrect.jpg')
