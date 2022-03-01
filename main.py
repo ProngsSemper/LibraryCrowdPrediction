@@ -29,14 +29,15 @@ data['day'] = data['datetime'].apply(lambda date: date.split('/')[2]).astype('in
 # 将人流量数据转换为float64类型
 data['human_traffic'] = np.array(data['human_traffic']).astype(np.float64)
 
-# 用1/6的数据做测试集，本数据集中2021年3月21日开始的数据作为测试集
+# 用1/6的数据做测试集，本数据集中2021年3月21日后的数据作为测试集
 d_final = data.query('year==2021').query('month==3').query('day==21').index[0]
 # 训练集
-# : 表示所有，如果左右有数字则表示左闭右开[ )
+# : 表示所有，如果左右有数字则表示左闭右开[ ) 下面这个1：2 就是取数据集里的第一列，从这里开始下面的数据集都是只包含人流量了
 train_set = data.iloc[:d_final, 1:2]
 # 检测集
 test_set = data.iloc[d_final:, 1:2]
 # 数据预处理归一化 训练神经网络模型归一化，对预测结果进行反归一化便于与原始标签进行比较，衡量模型的性能 可以加快求解速度
+# 数据归一化就是将数据中的每一个元素映射到一个较小的区间，这样，多维数据间的数字差距就会减小，消除量纲的影响。特别是在分析多维数据对标签的影响时更为重要。
 sc = MinMaxScaler(feature_range=(0, 1))
 # fit(): 求得训练集X的均值，方差，最大值，最小值,这些训练集X固有的属性。
 # transform(): 在fit的基础上，进行标准化，降维，归一化等操作
@@ -53,7 +54,7 @@ x_test = []
 y_test = []
 # range() 从time_step 到 len - 1，下面则是time_step到53
 for i in range(time_step, len(train_set_sc)):
-    # 第一次循环append 0：time_step（0、1、2、...） 第二次append 1：time_step（1、2、3、...）
+    # 第一次循环append 0：time_step（0、1、2、...） 第二次append 1：time_step + 1（1、2、3、...）
     x_train.append(train_set_sc[i - time_step:i])
     # 每次循环从time_step开始每一轮添加一个
     y_train.append(train_set_sc[i:i + 1])
@@ -63,7 +64,7 @@ for i in range(time_step, len(test_set_sc)):
 # 转为array格式
 x_test, y_test = np.array(x_test), np.array(y_test)
 x_train, y_train = np.array(x_train), np.array(y_train)
-# 将x_train与x_test处理为信的格式 y.shape[0]代表行数，y.shape[1]代表列数。
+# 将x_train与x_test处理为新的格式 y.shape[0]代表行数，y.shape[1]代表列数。
 x_train = np.reshape(x_train, (x_train.shape[0], time_step, 1))
 x_test = np.reshape(x_test, (x_test.shape[0], time_step, 1))
 
@@ -76,10 +77,13 @@ model = tf.keras.Sequential([
     Dense(1)
 ])
 model.compile(optimizer='adam',
-              loss='mse', )
+              loss='mse')
 
 # 训练模型
 history = model.fit(x_train, y_train,
+                    # 调试程序用
+                    # epochs=5,
+                    # 正式训练用
                     epochs=700,
                     batch_size=64,
                     validation_data=(x_test, y_test))
