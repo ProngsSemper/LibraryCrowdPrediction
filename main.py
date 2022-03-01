@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
 from matplotlib.font_manager import FontProperties
 
-f = pd.read_csv('F:\lib.csv')
+f = pd.read_csv('F:\lib3.csv')
 
 # drop函数默认删除行，列需要加axis = 1
 # drop方法有一个可选参数inplace，表明可对原数组作出修改并返回一个新数组。不管参数默认为False还是设置为True，原数组的内存值是不会改变的，区别在于原数组的内容是否直接被修改。
@@ -21,7 +21,13 @@ data = pd.DataFrame()
 # 代码适应图书馆的数据
 data['datetime'] = f['DATE']
 data['human_traffic'] = f['INCOUNT']
-data['week'] = f['WEEKDAY']
+data['1'] = f['1']
+data['2'] = f['2']
+data['3'] = f['3']
+data['4'] = f['4']
+data['5'] = f['5']
+data['6'] = f['6']
+data['7'] = f['7']
 
 data['year'] = data['datetime'].apply(lambda date: date.split('/')[0]).astype('int')
 data['month'] = data['datetime'].apply(lambda date: date.split('/')[1]).astype('int')
@@ -33,9 +39,11 @@ data['human_traffic'] = np.array(data['human_traffic']).astype(np.float64)
 d_final = data.query('year==2021').query('month==3').query('day==21').index[0]
 # 训练集
 # : 表示所有，如果左右有数字则表示左闭右开[ ) 下面这个1：2 就是取数据集里的第一列，从这里开始下面的数据集都是只包含人流量了
-train_set = data.iloc[:d_final, 1:2]
+# train_set = data.iloc[:d_final, 1:2]
 # 检测集
-test_set = data.iloc[d_final:, 1:2]
+# test_set = data.iloc[d_final:, 1:2]
+
+all_set = data.iloc[:, 1:2]
 # 数据预处理归一化 训练神经网络模型归一化，对预测结果进行反归一化便于与原始标签进行比较，衡量模型的性能 可以加快求解速度
 # 数据归一化就是将数据中的每一个元素映射到一个较小的区间，这样，多维数据间的数字差距就会减小，消除量纲的影响。特别是在分析多维数据对标签的影响时更为重要。
 sc = MinMaxScaler(feature_range=(0, 1))
@@ -43,8 +51,14 @@ sc = MinMaxScaler(feature_range=(0, 1))
 # transform(): 在fit的基础上，进行标准化，降维，归一化等操作
 # fit_transform是fit和transform的组合，既包括了训练又包含了转换。
 # transform()和fit_transform()二者的功能都是对数据进行某种统一处理（比如标准化~N(0,1)，将数据缩放(映射)到某个固定区间，归一化，正则化等）
-train_set_sc = sc.fit_transform(train_set)
-test_set_sc = sc.transform(test_set)
+all_set_sc = sc.fit_transform(all_set)
+all_set = data.iloc[:, 2:9]
+all_set_sc, all_set = np.array(all_set_sc), np.array(all_set)
+all_set_sc = np.concatenate((all_set_sc, all_set), axis=1)
+# train_set_sc = sc.fit_transform(train_set)
+train_set_sc = all_set_sc[:d_final, :]
+# test_set_sc = sc.transform(test_set)
+test_set_sc = all_set_sc[d_final:, :]
 
 # 按照time_step划分时间步长（使用前time_step个时间段预测下一个）
 time_step = 5
@@ -52,21 +66,21 @@ x_train = []
 y_train = []
 x_test = []
 y_test = []
-# range() 从time_step 到 len - 1，下面则是time_step到53
+# range() 从time_step 到 len - 1，下面则是time_step到d_final
 for i in range(time_step, len(train_set_sc)):
     # 第一次循环append 0：time_step（0、1、2、...） 第二次append 1：time_step + 1（1、2、3、...）
-    x_train.append(train_set_sc[i - time_step:i])
+    x_train.append(train_set_sc[i - time_step:i, :])
     # 每次循环从time_step开始每一轮添加一个
     y_train.append(train_set_sc[i:i + 1])
 for i in range(time_step, len(test_set_sc)):
-    x_test.append(test_set_sc[i - time_step:i])
+    x_test.append(test_set_sc[i - time_step:i, :])
     y_test.append(test_set_sc[i:i + 1])
 # 转为array格式
 x_test, y_test = np.array(x_test), np.array(y_test)
 x_train, y_train = np.array(x_train), np.array(y_train)
 # 将x_train与x_test处理为新的格式 y.shape[0]代表行数，y.shape[1]代表列数。
-x_train = np.reshape(x_train, (x_train.shape[0], time_step, 1))
-x_test = np.reshape(x_test, (x_test.shape[0], time_step, 1))
+x_train = np.reshape(x_train, (x_train.shape[0], time_step, 8))
+x_test = np.reshape(x_test, (x_test.shape[0], time_step, 8))
 
 # LSTM模型
 model = tf.keras.Sequential([
@@ -91,7 +105,9 @@ history = model.fit(x_train, y_train,
 pre_flow = model.predict(x_test)
 # 反归一化 转换为原始数据
 pre_flow = sc.inverse_transform(pre_flow)
-real_flow = sc.inverse_transform(y_test.reshape(y_test.shape[0], 1))
+real_flow = y_test.reshape(y_test.shape[0], 8)
+fac = np.delete(real_flow, [1, 2, 3, 4, 5, 6, 7], axis=1)
+real_flow = sc.inverse_transform(fac)
 
 # 计算误差
 mse = mean_squared_error(pre_flow, real_flow)
