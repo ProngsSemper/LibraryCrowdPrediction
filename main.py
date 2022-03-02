@@ -2,18 +2,13 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow.keras.layers import Dense, LSTM, Dropout, Flatten
+from tensorflow.keras.layers import Dense, LSTM, Dropout
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
 from matplotlib.font_manager import FontProperties
 
 f = pd.read_csv('F:\lib.csv')
-
-# drop函数默认删除行，列需要加axis = 1
-# drop方法有一个可选参数inplace，表明可对原数组作出修改并返回一个新数组。不管参数默认为False还是设置为True，原数组的内存值是不会改变的，区别在于原数组的内容是否直接被修改。
-# 删除前三行
-f.drop([0, 1, 2], inplace=True)
 
 # data 包含要操作的列
 data = pd.DataFrame()
@@ -78,9 +73,9 @@ x_test = np.reshape(x_test, (x_test.shape[0], time_step, 1))
 
 # LSTM模型
 model = tf.keras.Sequential([
-    LSTM(80, return_sequences=True),
+    LSTM(160, return_sequences=True),
     Dropout(0.2),
-    LSTM(80),
+    LSTM(160),
     Dropout(0.2),
     Dense(1)
 ])
@@ -92,7 +87,7 @@ history = model.fit(x_train, y_train,
                     # 调试程序用
                     # epochs=5,
                     # 正式训练用
-                    epochs=700,
+                    epochs=500,
                     batch_size=64,
                     validation_data=(x_test, y_test))
 # 模型预测
