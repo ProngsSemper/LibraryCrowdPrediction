@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
 from matplotlib.font_manager import FontProperties
 
-f = pd.read_csv('F:\lib.csv')
+f = pd.read_csv('F:\lib3.csv')
 
 # data 包含要操作的列
 data = pd.DataFrame()
@@ -73,9 +73,9 @@ x_test = np.reshape(x_test, (x_test.shape[0], time_step, 1))
 
 # LSTM模型
 model = tf.keras.Sequential([
-    LSTM(160, return_sequences=True),
+    LSTM(90, return_sequences=True),
     Dropout(0.2),
-    LSTM(160),
+    LSTM(90),
     Dropout(0.2),
     Dense(1)
 ])
@@ -87,8 +87,8 @@ history = model.fit(x_train, y_train,
                     # 调试程序用
                     # epochs=5,
                     # 正式训练用
-                    epochs=500,
-                    batch_size=64,
+                    epochs=1300,
+                    batch_size=256,
                     validation_data=(x_test, y_test))
 # 模型预测
 pre_flow = model.predict(x_test)
@@ -100,8 +100,12 @@ real_flow = sc.inverse_transform(y_test.reshape(y_test.shape[0], 1))
 mse = mean_squared_error(pre_flow, real_flow)
 rmse = math.sqrt(mean_squared_error(pre_flow, real_flow))
 mae = mean_absolute_error(pre_flow, real_flow)
+# 均方误差是指参数估计值与参数真值之差平方的期望值，记为MSE。MSE是衡量“平均误差”的一种较方便的方法，MSE可以评价数据的变化程度，MSE的值越小，说明预测模型描述实验数据具有更好的精确度。
 print('均方误差---', mse)
+# RMSE是精确度的度量，用于比较特定数据集的不同模型的预测误差，而不是数据集之间的预测误差，因为它与比例相关。
+# RMSE始终是非负的，值0（实际上几乎从未实现）表明数据非常合适。通常，较低的RMSE优于较高的RMSE。但是，跨不同类型数据的比较将无效，因为该度量取决于所使用数字的比例。
 print('均方根误差---', rmse)
+# 平均绝对误差的计算方法是，将各个样本的绝对误差汇总，然后根据数据点数量求出平均误差。通过将模型的所有绝对值加起来，可以避免因预测值比真实值过高或过低而抵销误差，并能获得用于评估模型的整体误差指标
 print('平均绝对误差--', mae)
 
 # 画出预测结果图
@@ -113,4 +117,4 @@ plt.xlabel('测试序列', fontproperties=font_set)
 plt.ylabel('人流量/人数', fontproperties=font_set)
 plt.legend()
 # 预测储存图片
-plt.savefig('F:\libCorrect.jpg')
+plt.savefig('F:\libFull.jpg')
