@@ -75,9 +75,9 @@ x_test = np.reshape(x_test, (x_test.shape[0], time_step, 1))
 # LSTM模型
 model = tf.keras.Sequential([
     LSTM(90, return_sequences=True),
+    Dropout(0.23),
+    LSTM(100),
     Dropout(0.3),
-    LSTM(110),
-    Dropout(0.32),
     Dense(1)
 ])
 model.compile(optimizer='adam',
