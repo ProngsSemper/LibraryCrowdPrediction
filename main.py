@@ -1,12 +1,13 @@
-import tensorflow as tf
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from tensorflow.keras.layers import Dense, LSTM, Dropout
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import tensorflow as tf
 from matplotlib.font_manager import FontProperties
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.layers import Dense, LSTM, Dropout
 
 f = pd.read_csv('F:\lib3.csv')
 
@@ -23,8 +24,8 @@ data['day'] = data['datetime'].apply(lambda date: date.split('/')[2]).astype('in
 # 将人流量数据转换为float64类型
 data['human_traffic'] = np.array(data['human_traffic']).astype(np.float64)
 
-# 用1/6的数据做测试集，本数据集中2021年3月21日后的数据作为测试集
-d_final = data.query('year==2021').query('month==3').query('day==21').index[0]
+# 用1/6的数据做测试集，本数据集中2021年1月30日后的数据作为测试集
+d_final = data.query('year==2021').query('month==1').query('day==30').index[0]
 # 训练集
 # : 表示所有，如果左右有数字则表示左闭右开[ ) 下面这个1：2 就是取数据集里的第一列，从这里开始下面的数据集都是只包含人流量了
 train_set = data.iloc[:d_final, 1:2]
@@ -87,8 +88,8 @@ history = model.fit(x_train, y_train,
                     # 调试程序用
                     # epochs=5,
                     # 正式训练用
-                    epochs=1300,
-                    batch_size=256,
+                    epochs=500,
+                    batch_size=32,
                     validation_data=(x_test, y_test))
 # 模型预测
 pre_flow = model.predict(x_test)
