@@ -75,9 +75,9 @@ x_test = np.reshape(x_test, (x_test.shape[0], time_step, 1))
 # LSTM模型
 model = tf.keras.Sequential([
     LSTM(90, return_sequences=True),
-    Dropout(0.2),
-    LSTM(90),
-    Dropout(0.2),
+    Dropout(0.3),
+    LSTM(110),
+    Dropout(0.32),
     Dense(1)
 ])
 model.compile(optimizer='adam',
@@ -89,7 +89,7 @@ history = model.fit(x_train, y_train,
                     # epochs=5,
                     # 正式训练用
                     epochs=500,
-                    batch_size=32,
+                    # batch_size=32,
                     validation_data=(x_test, y_test))
 # 模型预测
 pre_flow = model.predict(x_test)
